@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Layout } from './components/Layout';
 import { UploadSchedule } from './components/UploadSchedule';
 import { ScheduleList } from './components/ScheduleList';
 import { AttendanceStats } from './components/AttendanceStats';
 import { ScheduleItem, AttendanceRecord, AttendanceStatus, OverallStats } from './types';
 import { useAuth } from './context/AuthContext';
-import { LogOut, Save } from 'lucide-react';
+import { Save, RefreshCw, Trash2 } from 'lucide-react';
+import { GlassCard } from './components/ui/GlassCard';
+import { motion } from 'framer-motion';
 
 export const Dashboard: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [records, setRecords] = useState<AttendanceRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +63,7 @@ export const Dashboard: React.FC = () => {
     };
 
     const handleReset = () => {
-        if (confirm("Are you sure you want to clear all data?")) {
+        if (confirm("Are you sure you want to clear all data? This cannot be undone.")) {
             setSchedule([]);
             setRecords([]);
             saveData([], []);
@@ -88,49 +88,94 @@ export const Dashboard: React.FC = () => {
     }, [records]);
 
     if (isLoading) {
-        return <div className="flex items-center justify-center min-h-screen bg-gray-50 text-indigo-600">Loading your data...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-indigo-500">
+                <RefreshCw className="w-8 h-8 animate-spin mb-4" />
+                <p className="font-medium animate-pulse">Syncing your data...</p>
+            </div>
+        );
     }
 
     const hasSchedule = schedule.length > 0;
 
     return (
-        <div className="relative">
-            <div className="bg-white border-b px-6 py-2 flex justify-between items-center text-sm fixed w-full top-0 right-0 z-50 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <span className="text-gray-600">Welcome, <strong>{user?.name}</strong></span>
-                    {isSaving && <span className="text-xs text-gray-400 flex items-center gap-1"><Save size={12} className="animate-pulse" /> Saving...</span>}
+        <div className="space-y-6 pb-20">
+            {/* Header Content */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                        Overview
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                        Here's what's happening today, {user?.name.split(' ')[0]}.
+                    </p>
                 </div>
-                <button onClick={logout} className="flex items-center gap-2 text-red-600 hover:text-red-700">
-                    <LogOut size={16} /> Logout
-                </button>
-            </div>
 
-            <div className="pt-12">
-                <Layout onReset={handleReset} hasSchedule={hasSchedule}>
-                    {!hasSchedule ? (
-                        <UploadSchedule onScheduleGenerated={handleScheduleGenerated} />
-                    ) : (
-                        <div className="animate-fade-in">
-                            <div className="mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-                                <p className="text-gray-500">Track your progress and stay on top of your classes.</p>
-                            </div>
-
-                            <AttendanceStats stats={stats} />
-
-                            <div className="mb-6 flex items-center justify-between">
-                                <h3 className="text-xl font-bold text-gray-900">Weekly Sheet</h3>
-                            </div>
-
-                            <ScheduleList
-                                schedule={schedule}
-                                records={records}
-                                onUpdateRecord={handleRecordUpdate}
-                            />
-                        </div>
+                <div className="flex items-center gap-3">
+                    {isSaving && (
+                        <span className="text-sm text-indigo-500 flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">
+                            <Save size={14} className="animate-pulse" /> Saving...
+                        </span>
                     )}
-                </Layout>
+                    {hasSchedule && (
+                        <button
+                            onClick={handleReset}
+                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                            title="Reset Data"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {!hasSchedule ? (
+                <GlassCard className="max-w-xl mx-auto mt-10 text-center py-12">
+                    <div className="mb-6 inline-flex p-4 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500">
+                        <CalendarIcon className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                        No Schedule Found
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm mx-auto">
+                        Upload your timetable image to get started. We'll extract your classes automatically.
+                    </p>
+                    <UploadSchedule onScheduleGenerated={handleScheduleGenerated} />
+                </GlassCard>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ staggerChildren: 0.1 }}
+                    className="space-y-6"
+                >
+                    {/* Stats Section */}
+                    <AttendanceStats stats={stats} />
+
+                    {/* Weekly Schedule */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Weekly Schedule</h2>
+                        </div>
+                        <ScheduleList
+                            schedule={schedule}
+                            records={records}
+                            onUpdateRecord={handleRecordUpdate}
+                        />
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };
+
+function CalendarIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+    )
+}

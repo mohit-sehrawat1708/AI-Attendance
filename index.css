@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* macOS-like scrollbar */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}

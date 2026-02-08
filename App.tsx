@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './Dashboard';
+import { AppShell } from './components/layout/AppShell';
 
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -21,7 +22,9 @@ const App: React.FC = () => {
                     <Route path="/register" element={<Register />} />
                     <Route path="/" element={
                         <PrivateRoute>
-                            <Dashboard />
+                            <AppShell>
+                                <Dashboard />
+                            </AppShell>
                         </PrivateRoute>
                     } />
                 </Routes>

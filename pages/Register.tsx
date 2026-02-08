@@ -1,187 +1,122 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
-import { UserPlus, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 
 export const Register: React.FC = () => {
-    const { login } = useAuth();
-    const [step, setStep] = useState<'EMAIL' | 'OTP' | 'DETAILS'>('EMAIL');
-    const [email, setEmail] = useState('');
-    const [otp, setOtp] = useState('');
     const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleSendOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            const res = await fetch('http://localhost:3001/auth/send-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            setStep('OTP');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to send OTP');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            const res = await fetch('http://localhost:3001/auth/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            setStep('DETAILS');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Verification failed');
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    const [isLoading, setIsLoading] = useState(false);
+    const { register } = useAuth();
     const navigate = useNavigate();
 
-    const handleRegister = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
+        setIsLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp, name, password }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            login(data.user);
+            await register(name, email, password);
             navigate('/');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Registration failed');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-                <div className="text-center">
-                    <div className="mx-auto h-12 w-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <UserPlus className="h-6 w-6 text-indigo-600" />
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-400/30 rounded-full blur-[100px] animate-breathe" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-400/30 rounded-full blur-[100px] animate-breathe animation-delay-2000" />
+
+            <GlassCard className="w-full max-w-md relative z-10" noPadding>
+                <div className="p-8 text-center border-b border-gray-100 dark:border-gray-800">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-4">
+                        <User className="w-8 h-8 text-white" />
                     </div>
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create an account</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create Account</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Join AttendAI to track your classes.</p>
                 </div>
 
-                {error && (
-                    <div className="bg-red-50 p-4 rounded-md flex items-start gap-2 text-red-700 text-sm">
-                        <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                        <span>{error}</span>
-                    </div>
-                )}
+                <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                    {error && (
+                        <div className="p-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300 text-sm rounded-lg border border-rose-100 dark:border-rose-900/30">
+                            {error}
+                        </div>
+                    )}
 
-                {step === 'EMAIL' && (
-                    <form onSubmit={handleSendOtp} className="space-y-6">
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-gray-400" />
-                                </div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-slate-900 dark:text-white"
+                                    placeholder="John Doe"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Email</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
                                     type="email"
-                                    required
-                                    className="block w-full pl-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
-                                    placeholder="you@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-slate-900 dark:text-white"
+                                    placeholder="name@example.com"
+                                    required
                                 />
                             </div>
                         </div>
-                        <Button type="submit" isLoading={loading} className="w-full">
-                            Send Verification Code
-                        </Button>
-                    </form>
-                )}
 
-                {step === 'OTP' && (
-                    <form onSubmit={handleVerifyOtp} className="space-y-6">
-                        <div className="text-sm text-gray-500 text-center">
-                            Code sent to <strong>{email}</strong>
-                        </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Verification Code</label>
-                            <input
-                                type="text"
-                                required
-                                maxLength={6}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border text-center text-2xl tracking-widest"
-                                placeholder="000000"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                            />
-                        </div>
-                        <Button type="submit" isLoading={loading} className="w-full">
-                            Verify Code
-                        </Button>
-                        <button type="button" onClick={() => setStep('EMAIL')} className="w-full text-sm text-indigo-600 hover:text-indigo-500">
-                            Change Email
-                        </button>
-                    </form>
-                )}
-
-                {step === 'DETAILS' && (
-                    <form onSubmit={handleRegister} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input
-                                type="text"
-                                required
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Password</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
                                     type="password"
-                                    required
-                                    minLength={6}
-                                    className="block w-full pl-10 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-slate-900 dark:text-white"
+                                    placeholder="••••••••"
+                                    required
                                 />
                             </div>
                         </div>
-                        <Button type="submit" isLoading={loading} className="w-full">
-                            Complete Registration
-                        </Button>
-                    </form>
-                )}
+                    </div>
 
-                <div className="text-center text-sm">
-                    <p className="text-gray-600">Already have an account? <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">Login</a></p>
+                    <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500 shadow-emerald-500/30"
+                        size="lg"
+                    >
+                        Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </form>
+
+                <div className="p-6 bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 text-center text-sm text-slate-500 dark:text-slate-400">
+                    Already have an account?{' '}
+                    <Link to="/login" className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+                        Sign In
+                    </Link>
                 </div>
+            </GlassCard>
+
+            <div className="mt-8 text-slate-400 dark:text-slate-600 text-xs">
+                © 2024 AttendAI. Secure System.
             </div>
         </div>
     );
