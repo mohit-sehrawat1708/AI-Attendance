@@ -9,20 +9,34 @@ export const Register: React.FC = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [otp, setOtp] = useState('');
+    const [step, setStep] = useState<'details' | 'otp'>('details');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { register } = useAuth();
+    const { register, sendOTP } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
+
         try {
-            await register(name, email, password);
-            navigate('/');
+            if (step === 'details') {
+                if (!name || !email || !password) {
+                    throw new Error('Please fill in all fields');
+                }
+                await sendOTP(email);
+                setStep('otp');
+            } else {
+                if (!otp) {
+                    throw new Error('Please enter the OTP');
+                }
+                await register(name, email, password, otp);
+                navigate('/');
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Registration failed');
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setIsLoading(false);
         }
@@ -49,50 +63,80 @@ export const Register: React.FC = () => {
                     )}
 
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
-                                    placeholder="John Doe"
-                                    required
-                                />
-                            </div>
-                        </div>
+                        {step === 'details' ? (
+                            <>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
+                                            placeholder="John Doe"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
-                                    placeholder="name@example.com"
-                                    required
-                                />
-                            </div>
-                        </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Email</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
+                                            placeholder="name@example.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
-                                    placeholder="••••••••"
-                                    required
-                                />
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500"
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">Verification Code</label>
+                                <div className="text-xs text-zinc-500 mb-3">
+                                    We sent a code to <span className="font-medium text-text">{email}</span>
+                                </div>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                    <input
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-black/20 border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none text-text placeholder-zinc-500 tracking-widest"
+                                        placeholder="123456"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setStep('details')}
+                                    className="text-xs text-primary hover:underline mt-2 ml-1"
+                                >
+                                    Change email or details
+                                </button>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <Button
@@ -101,7 +145,11 @@ export const Register: React.FC = () => {
                         className="w-full py-2.5 bg-primary text-background hover:opacity-90 font-medium shadow-none rounded-lg"
                         size="lg"
                     >
-                        Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                        {step === 'details' ? (
+                            <>Sign Up <ArrowRight className="ml-2 h-4 w-4" /></>
+                        ) : (
+                            'Verify & Create Account'
+                        )}
                     </Button>
                 </form>
 

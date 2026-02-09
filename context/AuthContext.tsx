@@ -11,7 +11,8 @@ interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
-    register: (name: string, email: string, password: string) => Promise<void>;
+    register: (name: string, email: string, password: string, otp: string) => Promise<void>;
+    sendOTP: (email: string) => Promise<void>;
     isAuthenticated: boolean;
     loading: boolean;
 }
@@ -36,29 +37,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, password: string) => {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        // Mock login
-        const userData = {
-            id: '1',
-            email,
-            name: email.split('@')[0]
-        };
-        setUser(userData);
-        localStorage.setItem('attendai_user', JSON.stringify(userData));
+        try {
+            const response = await fetch('http://localhost:3001/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Login failed');
+            }
+
+            const data = await response.json();
+            setUser(data.user);
+            localStorage.setItem('attendai_user', JSON.stringify(data.user));
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
     };
 
-    const register = async (name: string, email: string, password: string) => {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+    const sendOTP = async (email: string) => {
+        try {
+            const response = await fetch('http://localhost:3001/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
 
-        const newUser = {
-            id: Math.random().toString(36).substr(2, 9),
-            name,
-            email
-        };
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to send OTP');
+            }
+        } catch (error) {
+            console.error('Send OTP error:', error);
+            throw error;
+        }
+    };
 
-        setUser(newUser);
-        localStorage.setItem('attendai_user', JSON.stringify(newUser));
+    const register = async (name: string, email: string, password: string, otp: string) => {
+        try {
+            const response = await fetch('http://localhost:3001/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password, otp }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Registration failed');
+            }
+
+            const data = await response.json();
+            setUser(data.user);
+            localStorage.setItem('attendai_user', JSON.stringify(data.user));
+        } catch (error) {
+            console.error('Registration error:', error);
+            throw error;
+        }
     };
 
     const logout = () => {
@@ -67,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, register, isAuthenticated: !!user, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, register, sendOTP, isAuthenticated: !!user, loading }}>
             {children}
         </AuthContext.Provider>
     );
