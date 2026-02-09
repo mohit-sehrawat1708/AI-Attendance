@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,6 +7,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './Dashboard';
 import { Schedule } from './pages/Schedule';
 import { AppShell } from './components/layout/AppShell';
+import { Settings } from './pages/Settings';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -23,13 +23,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
-                        <Route path="/schedule" element={
-                            <PrivateRoute>
-                                <AppShell>
-                                    <Schedule />
-                                </AppShell>
-                            </PrivateRoute>
-                        } />
+
                         <Route path="/" element={
                             <PrivateRoute>
                                 <AppShell>
@@ -37,6 +31,24 @@ const App: React.FC = () => {
                                 </AppShell>
                             </PrivateRoute>
                         } />
+
+                        <Route path="/schedule" element={
+                            <PrivateRoute>
+                                <AppShell>
+                                    <Schedule />
+                                </AppShell>
+                            </PrivateRoute>
+                        } />
+
+                        <Route path="/settings" element={
+                            <PrivateRoute>
+                                <AppShell>
+                                    <Settings />
+                                </AppShell>
+                            </PrivateRoute>
+                        } />
+
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Router>
             </ThemeProvider>

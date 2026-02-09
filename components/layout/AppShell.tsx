@@ -3,19 +3,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Calendar,
-    Settings,
-    LogOut,
     Menu,
     X,
-    Moon,
-    Sun,
     User,
-    PanelLeftOpen
+    PanelLeftOpen,
+    MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { TrafficLights } from '../ui/TrafficLights';
+import { ProfileModal } from '../ProfileModal';
 
 interface AppShellProps {
     children: React.ReactNode;
@@ -24,12 +22,11 @@ interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { theme, toggleTheme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
     const location = useLocation();
-    const navigate = useNavigate();
-    const { logout, user } = useAuth();
+    const { user } = useAuth(); // Logout is now handling in ProfileModal
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -41,13 +38,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Calendar, label: 'Schedule', path: '/schedule' },
-        { icon: Settings, label: 'Settings', path: '/settings' },
     ];
-
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
 
     return (
         <div className="h-screen w-screen bg-background text-text font-sans flex overflow-hidden transition-colors duration-300 relative">
@@ -81,80 +72,62 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                         }}
                         exit={{ x: -100, opacity: 0, width: 0, margin: 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="hidden md:flex flex-col rounded-2xl bg-surface border border-border shadow-2xl z-20 shrink-0 overflow-hidden"
+                        className="hidden md:flex flex-col rounded-2xl bg-surface border border-border shadow-2xl z-20 shrink-0 overflow-hidden relative"
                     >
                         {/* Header with Traffic Lights */}
-                        <div className={`p-6 flex items-center gap-4 border-b border-border ${isSidebarCollapsed ? 'justify-center px-4' : ''}`}>
+                        <div className={`p-6 flex items-center gap-4 ${isSidebarCollapsed ? 'justify-center px-4' : ''}`}>
                             <TrafficLights onAction={handleWindowAction} />
-                            {!isSidebarCollapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex items-center gap-3"
-                                >
-                                    {/* AI Icon Removed as requested */}
-                                </motion.div>
-                            )}
-                        </div>
-
-                        {/* User Profile Snippet */}
-                        <div className={`px-6 py-6 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}>
-                            <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-text/70 shrink-0">
-                                <User className="w-5 h-5" />
-                            </div>
-                            {!isSidebarCollapsed && (
-                                <div className="overflow-hidden">
-                                    <h3 className="font-medium text-sm text-text truncate">{user?.name || 'User'}</h3>
-                                    <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
-                                </div>
-                            )}
                         </div>
 
                         {/* Navigation */}
-                        <nav className="flex-1 px-4 space-y-1">
+                        <nav className="flex-1 px-4 space-y-1 mt-2">
                             {navItems.map((item) => {
                                 const isActive = location.pathname === item.path;
                                 return (
                                     <Link
                                         key={item.path}
                                         to={item.path}
-                                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm ${isActive
-                                            ? 'bg-primary text-background font-medium'
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm ${isActive
+                                            ? 'bg-primary text-background font-medium shadow-md shadow-primary/10'
                                             : 'text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5'
                                             } ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
                                         title={isSidebarCollapsed ? item.label : ''}
                                     >
-                                        <item.icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'} shrink-0`} />
+                                        <item.icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'} shrink-0`} />
                                         {!isSidebarCollapsed && <span>{item.label}</span>}
                                     </Link>
                                 );
                             })}
                         </nav>
 
-                        {/* Bottom Actions */}
-                        <div className="p-4 mt-auto space-y-2 border-t border-border">
+                        {/* User Profile (Bottom) */}
+                        <div className="p-4 mt-auto border-t border-border/50">
                             <button
-                                onClick={toggleTheme}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5 transition-all ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
-                                title="Toggle Theme"
+                                onClick={() => setIsProfileModalOpen(true)}
+                                className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all group ${isSidebarCollapsed ? 'justify-center' : ''}`}
                             >
-                                {isDarkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
-                                {!isSidebarCollapsed && <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
-                            </button>
-
-                            <button
-                                onClick={handleLogout}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-all ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
-                                title="Sign Out"
-                            >
-                                <LogOut className="w-4 h-4 shrink-0" />
-                                {!isSidebarCollapsed && <span>Sign Out</span>}
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-105 transition-transform">
+                                    <User className="w-5 h-5" />
+                                </div>
+                                {!isSidebarCollapsed && (
+                                    <div className="flex-1 text-left overflow-hidden">
+                                        <h3 className="font-semibold text-sm text-text truncate leading-tight">{user?.name || 'User'}</h3>
+                                        <p className="text-xs text-zinc-500 truncate mt-0.5">{user?.email}</p>
+                                    </div>
+                                )}
+                                {!isSidebarCollapsed && (
+                                    <MoreHorizontal className="w-4 h-4 text-zinc-400 group-hover:text-text" />
+                                )}
                             </button>
                         </div>
                     </motion.aside>
                 )}
             </AnimatePresence>
 
+            <ProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+            />
 
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
@@ -219,14 +192,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                                 ))}
                             </nav>
 
-                            <div className="mt-auto space-y-3 pt-6 border-t border-border">
-                                <button onClick={() => { toggleTheme(); toggleSidebar(); }} className="flex items-center gap-3 px-4 py-3 w-full text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5">
-                                    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                                </button>
-                                <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-sm text-zinc-500 hover:text-red-500 hover:bg-red-500/10">
-                                    <LogOut className="w-5 h-5" />
-                                    Sign Out
+                            <div className="mt-auto pt-6 border-t border-border">
+                                <button
+                                    onClick={() => { toggleSidebar(); setIsProfileModalOpen(true); }}
+                                    className="flex items-center gap-3 px-4 py-3 w-full text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5 rounded-lg"
+                                >
+                                    <User className="w-5 h-5" />
+                                    Profile & Settings
                                 </button>
                             </div>
                         </motion.div>

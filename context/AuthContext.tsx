@@ -5,6 +5,7 @@ interface User {
     id: string;
     email: string;
     name: string;
+    role?: string;
 }
 
 interface AuthContextType {
@@ -22,6 +23,10 @@ interface AuthContextType {
     updateRecords: (newRecords: AttendanceRecord[]) => Promise<void>;
     refreshData: () => Promise<void>;
     isDataLoading: boolean;
+    updatePassword: (oldPw: string, newPw: string) => Promise<void>;
+    updateProfile: (name: string) => Promise<void>;
+    requestEmailUpdate: (newEmail: string) => Promise<void>;
+    verifyEmailUpdate: (otp: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -167,6 +172,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('attendai_user');
     };
 
+    const updatePassword = async (oldPassword: string, newPassword: string) => {
+        if (!user) return;
+        try {
+            const response = await fetch('http://localhost:3001/auth/update-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, oldPassword, newPassword }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update password');
+            }
+        } catch (error) {
+            console.error('Update password error:', error);
+            throw error;
+        }
+    };
+
+    const updateProfile = async (name: string) => {
+        if (!user) return;
+        try {
+            const response = await fetch('http://localhost:3001/auth/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, name }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update profile');
+            }
+
+            const data = await response.json();
+            const updatedUser = { ...user, ...data.user };
+            setUser(updatedUser);
+            localStorage.setItem('attendai_user', JSON.stringify(updatedUser));
+        } catch (error) {
+            console.error('Update profile error:', error);
+            throw error;
+        }
+    };
+
+    const requestEmailUpdate = async (newEmail: string) => {
+        if (!user) return;
+        try {
+            const response = await fetch('http://localhost:3001/auth/request-email-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, newEmail }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to request email update');
+            }
+        } catch (error) {
+            console.error('Request email update error:', error);
+            throw error;
+        }
+    };
+
+    const verifyEmailUpdate = async (otp: string) => {
+        if (!user) return;
+        try {
+            const response = await fetch('http://localhost:3001/auth/verify-email-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, otp }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to verify email update');
+            }
+
+            const data = await response.json();
+            const updatedUser = { ...user, ...data.user };
+            setUser(updatedUser);
+            localStorage.setItem('attendai_user', JSON.stringify(updatedUser)); // Update local storage!
+        } catch (error) {
+            console.error('Verify email update error:', error);
+            throw error;
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -182,7 +273,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateSchedule,
             updateRecords,
             refreshData: fetchData,
-            isDataLoading
+            isDataLoading,
+            updatePassword,
+            updateProfile,
+            requestEmailUpdate,
+            verifyEmailUpdate
         }}>
             {children}
         </AuthContext.Provider>

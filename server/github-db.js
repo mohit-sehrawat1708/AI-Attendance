@@ -73,6 +73,16 @@ export const saveUser = async (newUser) => {
     return newUser;
 };
 
+export const updateUser = async (updatedUser) => {
+    const users = await getUsers();
+    const index = users.findIndex(u => u.id === updatedUser.id);
+    if (index === -1) throw new Error('User not found');
+
+    users[index] = updatedUser;
+    await saveFileContent(USERS_PATH, users, `Update user ${updatedUser.email}`);
+    return updatedUser;
+};
+
 // --- Data Management ---
 export const getData = async (userId) => {
     const path = `data/storage_${userId}.json`;
