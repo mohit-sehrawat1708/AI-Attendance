@@ -23,24 +23,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
 }, ref) => {
 
   const variants = {
-    primary: "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-transparent",
-    secondary: "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700",
-    outline: "bg-transparent border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800",
-    danger: "bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30 border-transparent",
-    ghost: "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent",
+    primary: "bg-primary text-background hover:opacity-90 border-transparent shadow-none font-semibold",
+    secondary: "bg-surface text-text border-border hover:bg-black/5 dark:hover:bg-white/5",
+    outline: "bg-transparent border-border text-text hover:bg-black/5 dark:hover:bg-white/5",
+    danger: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20",
+    ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-zinc-500 hover:text-text border-transparent",
   };
 
   const sizes = {
     sm: "px-3 py-1.5 text-xs rounded-lg",
-    md: "px-4 py-2 text-sm rounded-xl",
-    lg: "px-6 py-3 text-base rounded-2xl",
+    md: "px-4 py-2 text-sm rounded-lg",
+    lg: "px-6 py-2.5 text-base rounded-lg",
   };
 
   return (
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-all duration-200 active:scale-[0.98] border focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "inline-flex items-center justify-center transition-all duration-200 active:scale-[0.98] border focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
         variants[variant],
         sizes[size],
         className

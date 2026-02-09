@@ -49,4 +49,5 @@ export interface OverallStats {
   totalClasses: number;
   attendedClasses: number; // Present + Late (maybe weighted)
   missedClasses: number;
+  cancelledClasses: number;
 }

@@ -12,15 +12,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: [
-                    '-apple-system',
-                    'BlinkMacSystemFont',
-                    '"Segoe UI"',
-                    'Roboto',
-                    'Helvetica',
-                    'Arial',
-                    'sans-serif'
-                ],
+                sans: ['Inter', 'sans-serif'],
             },
             borderRadius: {
                 '2xl': '1rem',
@@ -28,9 +20,10 @@ export default {
                 '4xl': '2rem',
             },
             colors: {
-                // Custom macOS-inspired utility colors if needed, 
-                // but default slate/zinc/gray usually works well for neutrals.
-                // We'll stick to Tailwind's default palette for now but ensure we use Slate.
+                background: '#000000',
+                surface: '#18181B', // Zinc 900
+                primary: '#FFFFFF',
+                secondary: '#A1A1AA', // Zinc 400
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-out',

@@ -131,14 +131,14 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
   // ===================== CONFLICT RESOLUTION VIEW =====================
   if (viewState === 'conflicts') {
     return (
-      <GlassCard className="w-full max-w-2xl mx-auto">
+      <GlassCard className="w-full max-w-2xl mx-auto bg-surface border-border">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-full bg-black/5 dark:bg-white/5 text-text flex items-center justify-center">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Resolve Conflicts</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Select your group for conflicting time slots.</p>
+            <h2 className="text-xl font-bold text-text">Resolve Conflicts</h2>
+            <p className="text-zinc-500 text-sm">Select your group for conflicting time slots.</p>
           </div>
         </div>
 
@@ -150,11 +150,11 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700"
+                className="p-4 bg-zinc-50 dark:bg-black/20 rounded-xl border border-border"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-4 w-4 text-indigo-500" />
-                  <span className="font-semibold text-slate-900 dark:text-white">
+                  <Clock className="h-4 w-4 text-text" />
+                  <span className="font-semibold text-text">
                     {conflict.day} • {conflict.startTime} - {conflict.endTime}
                   </span>
                 </div>
@@ -169,18 +169,18 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
                         key={option.group}
                         onClick={() => handleConflictSelect(conflict.id, option.group)}
                         className={`p-3 rounded-xl border-2 text-left transition-all duration-200 ${isSelected
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-200 dark:ring-indigo-900'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
+                          ? 'border-primary bg-primary text-background'
+                          : 'border-border bg-transparent text-zinc-500 hover:border-text hover:text-text'
                           }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300 dark:border-slate-600'
+                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-background bg-background' : 'border-zinc-500'
                             }`}>
-                            {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                            {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
                           </div>
-                          <span className="font-semibold text-sm text-slate-900 dark:text-white">Group {option.group}</span>
+                          <span className={`font-semibold text-sm ${isSelected ? 'text-background' : 'text-text'}`}>Group {option.group}</span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-6 truncate">{subjects}</p>
+                        <p className={`text-xs ml-6 truncate ${isSelected ? 'opacity-70' : 'text-zinc-500'}`}>{subjects}</p>
                       </button>
                     );
                   })}
@@ -203,14 +203,14 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
   // ===================== REVIEW VIEW =====================
   if (viewState === 'review') {
     return (
-      <GlassCard className="w-full max-w-4xl mx-auto">
+      <GlassCard className="w-full max-w-4xl mx-auto bg-surface border-border">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-full bg-black/5 dark:bg-white/5 text-text flex items-center justify-center">
             <CheckCircle2 className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Review Schedule</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
+            <h2 className="text-xl font-bold text-text">Review Schedule</h2>
+            <p className="text-zinc-500 text-sm">
               {finalSchedule.length} classes found.
             </p>
           </div>
@@ -220,25 +220,25 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
           {Object.entries(groupedByDay).map(([day, items]) => {
             if (items.length === 0) return null;
             return (
-              <div key={day} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-medium text-slate-700 dark:text-slate-300 flex justify-between">
+              <div key={day} className="border border-border rounded-xl overflow-hidden">
+                <div className="bg-black/5 dark:bg-white/5 px-4 py-3 border-b border-border font-medium text-text flex justify-between">
                   <span>{day}</span>
                   <span className="text-xs opacity-70">{items.length} classes</span>
                 </div>
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
+                <div className="divide-y divide-border bg-zinc-50 dark:bg-black/20">
                   {items.map(item => (
-                    <div key={item.id} className="p-3 flex gap-3 items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div key={item.id} className="p-3 flex gap-3 items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-900 dark:text-white truncate">{item.subject}</div>
-                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="font-semibold text-text truncate">{item.subject}</div>
+                        <div className="flex items-center gap-3 text-xs text-zinc-500">
                           <span>{item.startTime} - {item.endTime}</span>
                           {item.room && <span>📍 {item.room}</span>}
-                          {item.group && <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded text-[10px] font-bold">G{item.group}</span>}
+                          {item.group && <span className="px-1.5 py-0.5 bg-black/5 dark:bg-white/10 text-text rounded text-[10px] font-bold">G{item.group}</span>}
                         </div>
                       </div>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                        className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -266,9 +266,9 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
     <div className="w-full">
       <div
         className={`relative border-2 border-dashed rounded-2xl p-8 transition-all duration-300 text-center group cursor-pointer ${isDragging
-            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-[1.02]'
-            : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-          } ${error ? 'border-rose-300 bg-rose-50 dark:bg-rose-900/20' : ''}`}
+          ? 'border-primary bg-primary/5 scale-[1.02]'
+          : 'border-border hover:border-primary hover:bg-black/5 dark:hover:bg-white/5'
+          } ${error ? 'border-red-500/50 bg-red-500/10' : ''}`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
@@ -278,11 +278,11 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
 
         {!previewUrl ? (
           <div className="flex flex-col items-center py-6">
-            <div className="h-16 w-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300 shadow-sm">
+            <div className="h-16 w-16 bg-black/5 dark:bg-white/5 text-zinc-400 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300 shadow-sm">
               <Upload className="h-8 w-8" />
             </div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200 text-lg">Click to upload or drag and drop</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Supports PNG, JPG (max 5MB)</p>
+            <p className="font-semibold text-text text-lg">Click to upload or drag and drop</p>
+            <p className="text-sm text-zinc-500 mt-2">Supports PNG, JPG (max 5MB)</p>
           </div>
         ) : (
           <div className="relative group/preview">
@@ -292,7 +292,7 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); }}
-              className="absolute top-2 right-2 bg-rose-500 text-white p-2 rounded-full shadow-lg hover:bg-rose-600 transition-transform hover:scale-110 z-10"
+              className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition-transform hover:scale-110 z-10"
             >
               <X className="h-4 w-4" />
             </button>
@@ -304,7 +304,7 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300 rounded-xl flex items-center gap-3 text-sm border border-rose-100 dark:border-rose-900/30"
+          className="mt-4 p-4 bg-red-500/10 text-red-500 rounded-xl flex items-center gap-3 text-sm border border-red-500/20"
         >
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>{error}</span>
@@ -316,7 +316,7 @@ export const UploadSchedule: React.FC<UploadScheduleProps> = ({ onScheduleGenera
           disabled={!selectedFile}
           isLoading={isProcessing}
           onClick={(e) => { e.stopPropagation(); handleAnalyze(); }}
-          className="w-full py-6 text-lg shadow-xl shadow-indigo-500/20"
+          className="w-full py-6 text-lg shadow-none"
         >
           {isProcessing ? 'Analyzing Schedule...' : 'Analyze Schedule'}
         </Button>

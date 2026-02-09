@@ -9,11 +9,13 @@ import {
     X,
     Moon,
     Sun,
-    User
+    User,
+    PanelLeftOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { GlassCard } from '../ui/GlassCard';
+import { useTheme } from '../../context/ThemeContext';
+import { TrafficLights } from '../ui/TrafficLights';
 
 interface AppShellProps {
     children: React.ReactNode;
@@ -21,26 +23,25 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const { theme, toggleTheme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    const toggleDarkMode = () => {
-        setIsDarkMode(!isDarkMode);
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-        }
+    const handleWindowAction = (action: 'close' | 'minimize' | 'maximize') => {
+        if (action === 'close') setIsSidebarVisible(false);
+        if (action === 'minimize') setIsSidebarCollapsed(!isSidebarCollapsed);
     };
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-        { icon: Calendar, label: 'Schedule', path: '/schedule' }, // Placeholder path
-        { icon: Settings, label: 'Settings', path: '/settings' }, // Placeholder path
+        { icon: Calendar, label: 'Schedule', path: '/schedule' },
+        { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
     const handleLogout = () => {
@@ -49,103 +50,131 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     };
 
     return (
-        <div className={`min-h-screen bg-slate-100 dark:bg-slate-900 transition-colors duration-500 font-sans flex overflow-hidden`}>
-            {/* Background Decor (Blobs) */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-400/20 rounded-full blur-[100px] animate-breathe" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-400/20 rounded-full blur-[100px] animate-breathe animation-delay-2000" />
-            </div>
+        <div className="h-screen w-screen bg-background text-text font-sans flex overflow-hidden transition-colors duration-300 relative">
+            {/* Desktop Restore Button (Visible when Sidebar is Hidden) */}
+            <AnimatePresence>
+                {!isSidebarVisible && (
+                    <motion.button
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        onClick={() => setIsSidebarVisible(true)}
+                        className="hidden md:flex absolute top-4 left-4 z-50 p-2 bg-surface border border-border rounded-lg shadow-lg hover:bg-black/5 dark:hover:bg-white/10 text-zinc-500 hover:text-text transition-colors"
+                        title="Show Sidebar"
+                    >
+                        <PanelLeftOpen size={20} />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             {/* Sidebar (Desktop) */}
-            <motion.aside
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                className="hidden md:flex flex-col w-64 m-4 mr-0 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl z-20"
-            >
-                {/* Window Controls */}
-                <div className="p-6 pb-2 flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-400 hover:bg-red-500 transition-colors shadow-sm" />
-                    <div className="w-3 h-3 rounded-full bg-amber-400 hover:bg-amber-500 transition-colors shadow-sm" />
-                    <div className="w-3 h-3 rounded-full bg-emerald-400 hover:bg-emerald-500 transition-colors shadow-sm" />
-                </div>
+            <AnimatePresence mode="wait">
+                {isSidebarVisible && (
+                    <motion.aside
+                        layout
+                        initial={{ x: -100, opacity: 0, width: 0, margin: 0 }}
+                        animate={{
+                            x: 0,
+                            opacity: 1,
+                            width: isSidebarCollapsed ? '5rem' : '16rem',
+                            margin: '1rem 1rem 1rem 0'
+                        }}
+                        exit={{ x: -100, opacity: 0, width: 0, margin: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="hidden md:flex flex-col rounded-2xl bg-surface border border-border shadow-2xl z-20 shrink-0 overflow-hidden"
+                    >
+                        {/* Header with Traffic Lights */}
+                        <div className={`p-6 flex items-center gap-4 border-b border-border ${isSidebarCollapsed ? 'justify-center px-4' : ''}`}>
+                            <TrafficLights onAction={handleWindowAction} />
+                            {!isSidebarCollapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="flex items-center gap-3"
+                                >
+                                    {/* AI Icon Removed as requested */}
+                                </motion.div>
+                            )}
+                        </div>
 
-                {/* User Profile Snippet */}
-                <div className="px-6 py-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                        <User className="w-5 h-5" />
-                    </div>
-                    <div className="overflow-hidden">
-                        <h3 className="font-semibold text-slate-800 dark:text-slate-200 truncate">{user?.name || 'User'}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-                    </div>
-                </div>
+                        {/* User Profile Snippet */}
+                        <div className={`px-6 py-6 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}>
+                            <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-text/70 shrink-0">
+                                <User className="w-5 h-5" />
+                            </div>
+                            {!isSidebarCollapsed && (
+                                <div className="overflow-hidden">
+                                    <h3 className="font-medium text-sm text-text truncate">{user?.name || 'User'}</h3>
+                                    <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                                </div>
+                            )}
+                        </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 px-4 py-4 space-y-2">
-                    {navItems.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive
-                                        ? 'bg-white/50 dark:bg-slate-700/50 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30 hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
+                        {/* Navigation */}
+                        <nav className="flex-1 px-4 space-y-1">
+                            {navItems.map((item) => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm ${isActive
+                                            ? 'bg-primary text-background font-medium'
+                                            : 'text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5'
+                                            } ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
+                                        title={isSidebarCollapsed ? item.label : ''}
+                                    >
+                                        <item.icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'} shrink-0`} />
+                                        {!isSidebarCollapsed && <span>{item.label}</span>}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        {/* Bottom Actions */}
+                        <div className="p-4 mt-auto space-y-2 border-t border-border">
+                            <button
+                                onClick={toggleTheme}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5 transition-all ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
+                                title="Toggle Theme"
                             >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="activeNav"
-                                        className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
-                                    />
-                                )}
-                                <item.icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                                <span>{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </nav>
+                                {isDarkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
+                                {!isSidebarCollapsed && <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+                            </button>
 
-                {/* Bottom Actions */}
-                <div className="p-4 mt-auto space-y-2">
-                    <button
-                        onClick={toggleDarkMode}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30 transition-all"
-                    >
-                        {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                        <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                    </button>
+                            <button
+                                onClick={handleLogout}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-all ${isSidebarCollapsed ? 'justify-center px-2' : ''}`}
+                                title="Sign Out"
+                            >
+                                <LogOut className="w-4 h-4 shrink-0" />
+                                {!isSidebarCollapsed && <span>Sign Out</span>}
+                            </button>
+                        </div>
+                    </motion.aside>
+                )}
+            </AnimatePresence>
 
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        <span>Sign Out</span>
-                    </button>
-                </div>
-            </motion.aside>
 
             {/* Mobile Header */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 z-50">
-                <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
-                    AttendAI
-                </span>
-                <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
-                    {isSidebarOpen ? <X /> : <Menu />}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
+                <span className="font-bold text-lg">AttendAI</span>
+                <button onClick={toggleSidebar} className="p-2 text-zinc-400 hover:text-white">
+                    {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
 
-            {/* Main Content Area */}
-            <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden relative p-4 md:p-6 pt-20 md:pt-6">
-                <div className="max-w-6xl mx-auto space-y-6">
+            {/* Main Content Area - Full Screen Fit */}
+            <main className={`flex-1 h-full w-full relative p-4 md:p-6 bg-background overflow-hidden flex flex-col transition-[padding] duration-300 ${!isSidebarVisible ? 'md:pl-20' : ''}`}>
+                <div className="h-full w-full rounded-2xl overflow-hidden flex flex-col relative">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={location.pathname}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
+                            initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, scale: 1.02, filter: 'blur(10px)' }}
+                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                            className="h-full w-full flex flex-col"
                         >
                             {children}
                         </motion.div>
@@ -162,18 +191,18 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={toggleSidebar}
-                            className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                            className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
                         />
                         <motion.div
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
-                            className="md:hidden fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-slate-900 shadow-2xl z-50 p-6 flex flex-col"
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="md:hidden fixed top-0 right-0 bottom-0 w-72 bg-surface shadow-2xl z-50 p-6 flex flex-col border-l border-border"
                         >
-                            {/* Mobile Sidebar Content - reused logic */}
                             <div className="flex justify-between items-center mb-8">
-                                <span className="font-bold text-xl">Menu</span>
-                                <button onClick={toggleSidebar}><X /></button>
+                                <span className="font-bold text-lg text-text">Menu</span>
+                                <button onClick={toggleSidebar} className="text-zinc-500 hover:text-text"><X size={20} /></button>
                             </div>
 
                             <nav className="space-y-2 flex-1">
@@ -182,7 +211,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                                         key={item.path}
                                         to={item.path}
                                         onClick={toggleSidebar}
-                                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100"
+                                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5"
                                     >
                                         <item.icon className="w-5 h-5" />
                                         {item.label}
@@ -190,12 +219,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                                 ))}
                             </nav>
 
-                            <div className="mt-auto space-y-3">
-                                <button onClick={() => { toggleDarkMode(); toggleSidebar(); }} className="flex items-center gap-3 px-4 py-3 w-full">
+                            <div className="mt-auto space-y-3 pt-6 border-t border-border">
+                                <button onClick={() => { toggleTheme(); toggleSidebar(); }} className="flex items-center gap-3 px-4 py-3 w-full text-sm text-zinc-500 hover:text-text hover:bg-black/5 dark:hover:bg-white/5">
                                     {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                                     {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                                 </button>
-                                <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-rose-500">
+                                <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-sm text-zinc-500 hover:text-red-500 hover:bg-red-500/10">
                                     <LogOut className="w-5 h-5" />
                                     Sign Out
                                 </button>
@@ -204,6 +233,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                     </>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };

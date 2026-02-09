@@ -7,33 +7,34 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-interface GlassCardProps extends HTMLMotionProps<"div"> {
+interface CardProps extends HTMLMotionProps<"div"> {
     children: React.ReactNode;
     className?: string;
     variant?: 'default' | 'hover' | 'interactive';
     noPadding?: boolean;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({
+export const GlassCard: React.FC<CardProps> = ({
     children,
     className,
     variant = 'default',
     noPadding = false,
     ...props
 }) => {
+    // Bold Black Minimalist Styles
     const variants = {
-        default: "bg-white/70 dark:bg-slate-800/60 border-white/20 dark:border-white/10",
-        hover: "bg-white/70 dark:bg-slate-800/60 border-white/20 dark:border-white/10 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors duration-300",
-        interactive: "bg-white/40 dark:bg-slate-800/40 border-white/10 dark:border-white/5 hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+        default: "bg-surface border-border",
+        hover: "bg-surface border-border hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors duration-200",
+        interactive: "bg-surface border-border hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.99] transition-all duration-200 cursor-pointer"
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className={cn(
-                "backdrop-blur-xl border shadow-xl rounded-2xl overflow-hidden",
+                "border rounded-xl overflow-hidden", // Removed backdrop-blur and shadow-xl for minimalist look
                 variants[variant],
                 noPadding ? "" : "p-6",
                 className

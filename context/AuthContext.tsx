@@ -9,8 +9,9 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (userData: User) => void;
+    login: (email: string, password: string) => Promise<void>;
     logout: () => void;
+    register: (name: string, email: string, password: string) => Promise<void>;
     isAuthenticated: boolean;
     loading: boolean;
 }
@@ -34,9 +35,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
     }, []);
 
-    const login = (userData: User) => {
+    const login = async (email: string, password: string) => {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        // Mock login
+        const userData = {
+            id: '1',
+            email,
+            name: email.split('@')[0]
+        };
         setUser(userData);
         localStorage.setItem('attendai_user', JSON.stringify(userData));
+    };
+
+    const register = async (name: string, email: string, password: string) => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        const newUser = {
+            id: Math.random().toString(36).substr(2, 9),
+            name,
+            email
+        };
+
+        setUser(newUser);
+        localStorage.setItem('attendai_user', JSON.stringify(newUser));
     };
 
     const logout = () => {
@@ -45,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, register, isAuthenticated: !!user, loading }}>
             {children}
         </AuthContext.Provider>
     );
